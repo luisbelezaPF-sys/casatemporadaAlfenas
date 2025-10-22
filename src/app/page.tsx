@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Search, Filter, Phone, Mail, MapPin, Bed, Bath, Square, Star, Shield, Award, Users, Menu, X, Plus, Edit, Trash2, LogOut, Settings, Upload, Image as ImageIcon, MessageCircle } from 'lucide-react'
+import { getProperties, createProperty, updateProperty, deleteProperty, createContact, Property, Contact } from '@/lib/supabase'
 
 // Componentes UI básicos - usando apenas os que existem
 const Button = ({ children, onClick, className = '', variant = 'default', size = 'default', disabled = false, type = 'button', ...props }: any) => {
@@ -195,55 +196,7 @@ const useAuth = () => {
   return { isAuthenticated, login, logout }
 }
 
-// Funções de banco de dados mock
-const getProperties = async () => {
-  return []
-}
-
-const createProperty = async (data: any) => {
-  console.log('Criando propriedade:', data)
-}
-
-const updateProperty = async (id: number, data: any) => {
-  console.log('Atualizando propriedade:', id, data)
-}
-
-const deleteProperty = async (id: number) => {
-  console.log('Deletando propriedade:', id)
-}
-
-const createContact = async (data: any) => {
-  console.log('Criando contato:', data)
-}
-
 // Tipos
-interface Property {
-  id: number
-  title: string
-  description: string
-  price: number
-  location: string
-  type: string
-  bedrooms: number
-  bathrooms: number
-  area: number
-  image?: string
-  images?: string[]
-  features?: string[]
-  active: boolean
-  available: boolean
-  created_at: string
-  updated_at: string
-}
-
-interface Contact {
-  name: string
-  email: string
-  phone: string
-  message: string
-  property_id?: number
-}
-
 interface PropertyFilters {
   type?: string
   minPrice?: number
@@ -312,7 +265,7 @@ export default function RealEstateWebsite() {
       setProperties(data)
     } catch (error) {
       console.error('Erro ao carregar propriedades:', error)
-      // Dados mock para demonstração
+      // Dados mock para demonstração caso haja erro
       const mockProperties: Property[] = [
         {
           id: 1,
@@ -504,7 +457,9 @@ Mensagem: ${contactForm.message}`
         await createProperty(propertyData)
       }
 
+      // Recarregar propriedades para mostrar a nova na página inicial
       await loadProperties()
+      
       setShowPropertyForm(false)
       setEditingProperty(null)
       setPropertyForm({
@@ -512,8 +467,13 @@ Mensagem: ${contactForm.message}`
         bedrooms: '', bathrooms: '', area: '', images: '', features: '',
         uploadedImages: []
       })
+
+      // Mostrar mensagem de sucesso
+      alert(editingProperty ? 'Imóvel atualizado com sucesso!' : 'Imóvel adicionado com sucesso! Agora aparece na página inicial.')
+      
     } catch (error) {
       console.error('Erro ao salvar propriedade:', error)
+      alert('Erro ao salvar propriedade. Verifique os dados e tente novamente.')
     }
   }
 
@@ -522,8 +482,10 @@ Mensagem: ${contactForm.message}`
       try {
         await deleteProperty(id)
         await loadProperties()
+        alert('Propriedade excluída com sucesso!')
       } catch (error) {
         console.error('Erro ao excluir propriedade:', error)
+        alert('Erro ao excluir propriedade.')
       }
     }
   }
