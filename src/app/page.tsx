@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Filter, Phone, Mail, MapPin, Bed, Bath, Square, Star, Shield, Award, Users, Menu, X, Plus, Edit, Trash2, LogOut, Settings, Upload, Image as ImageIcon, MessageCircle } from 'lucide-react'
 
 // Componentes UI básicos - usando apenas os que existem
@@ -108,21 +108,42 @@ const Label = ({ children, className = '', ...props }: any) => (
 const Select = ({ children, value, onValueChange }: any) => {
   const [isOpen, setIsOpen] = useState(false)
   
+  const handleSelect = (selectedValue: string) => {
+    onValueChange(selectedValue)
+    setIsOpen(false)
+  }
+  
   return (
     <div className="relative">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-10 w-full items-center justify-between rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2"
       >
-        <span>{value || 'Selecione...'}</span>
+        <span>{value || 'Selecione o tipo'}</span>
         <svg className="h-4 w-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-popover p-1 text-popover-foreground shadow-md">
-          {children}
+        <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-gray-600 bg-gray-700 p-1 shadow-md">
+          {React.Children.map(children, (child) => {
+            if (React.isValidElement(child) && child.type === SelectContent) {
+              return React.cloneElement(child, {
+                ...child.props,
+                children: React.Children.map(child.props.children, (item) => {
+                  if (React.isValidElement(item) && item.type === SelectItem) {
+                    return React.cloneElement(item, {
+                      ...item.props,
+                      onClick: () => handleSelect(item.props.value)
+                    })
+                  }
+                  return item
+                })
+              })
+            }
+            return child
+          })}
         </div>
       )}
     </div>
@@ -134,8 +155,8 @@ const SelectValue = ({ placeholder }: any) => <span>{placeholder}</span>
 const SelectContent = ({ children }: any) => children
 const SelectItem = ({ children, value, onClick }: any) => (
   <div
-    className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-    onClick={() => onClick?.(value)}
+    className="relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 pl-3 pr-2 text-sm outline-none hover:bg-gray-600 hover:text-white transition-colors"
+    onClick={onClick}
   >
     {children}
   </div>
@@ -160,7 +181,7 @@ const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   
   const login = (username: string, password: string) => {
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'admin' && password === 'batman267') {
       setIsAuthenticated(true)
       return true
     }
@@ -242,7 +263,7 @@ export default function RealEstateWebsite() {
   const [showPropertyForm, setShowPropertyForm] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
 
   const { isAuthenticated, login, logout } = useAuth()
